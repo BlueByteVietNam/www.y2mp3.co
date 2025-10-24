@@ -1,10 +1,10 @@
 // API Configuration
-export const API_URL = "http://23.88.64.58:9000";
+export const API_URL = "https://sv-190.y2mp3.co";
 export const AUTH_TOKEN = '';
 
 // Default request configurations
 export const AUDIO_CONFIG = {
-  downloadMode: "audio",
+  downloadMode: "auto",
   filenameStyle: "basic",
 
   // Audio settings
@@ -14,7 +14,7 @@ export const AUDIO_CONFIG = {
   // YouTube audio
   youtubeBetterAudio: false,
 
-  // Video settings (not used but sent for consistency)
+  // Video settings
   videoQuality: "1080",
   youtubeVideoCodec: "h264",
   youtubeVideoContainer: "mp4",
