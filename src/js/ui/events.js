@@ -1,12 +1,17 @@
-import { urlInput, showStatus, showProgress, hideProgress, saveFile, modeSwitch, toggleMode, getIsVideoMode } from './dom.js';
+import { urlInput, showStatus, hideProgress, modeSwitch, toggleMode, getIsVideoMode, showDownloadPopup, hideDownloadPopup, closePopup } from './dom.js';
 import { isYouTubeURL } from '../utils/validate.js';
-import { getDownloadURL, downloadFile } from '../api/client.js';
+import { getDownloadURL } from '../api/client.js';
 
 let isProcessing = false;
 
 // Handle mode switch
 modeSwitch.addEventListener('click', () => {
   toggleMode();
+});
+
+// Handle close popup
+closePopup.addEventListener('click', () => {
+  hideDownloadPopup();
 });
 
 // Handle download process
@@ -39,31 +44,15 @@ async function handleDownload() {
       const ext = getIsVideoMode() ? 'mp4' : 'mp3';
       const filename = response.filename || `download_${Date.now()}.${ext}`;
 
-      // Download file with progress
-      const blob = await downloadFile(response.url, filename, {
-        onProgress: (percent, text) => {
-          showStatus('Downloading...');
-          showProgress(percent, text);
-        },
-        onComplete: () => {
-          showStatus('Download completed!');
-          hideProgress();
-        },
-        onError: (error) => {
-          showStatus('Download failed: ' + error.message);
-          hideProgress();
-        }
-      });
-
-      saveFile(blob, filename);
-      showStatus('Download completed!');
+      // Show download popup with link
+      showDownloadPopup(response.url, filename);
+      showStatus('Ready to download!');
       hideProgress();
 
-      // Clear after 3 seconds
+      // Clear URL after 5 seconds
       setTimeout(() => {
-        showStatus('');
         urlInput.value = '';
-      }, 3000);
+      }, 5000);
 
     } else if (response.status === 'error') {
       const errorMsg = response.error?.code || 'Download failed';

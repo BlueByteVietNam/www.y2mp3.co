@@ -4,6 +4,9 @@ export const status = document.getElementById('status');
 export const progress = document.getElementById('progress');
 export const progressText = document.getElementById('progressText');
 export const modeSwitch = document.getElementById('modeSwitch');
+export const downloadPopup = document.getElementById('downloadPopup');
+export const downloadLink = document.getElementById('downloadLink');
+export const closePopup = document.getElementById('closePopup');
 
 // Mode state
 export let isVideoMode = false;
@@ -36,15 +39,16 @@ export function hideProgress() {
   progressText.style.display = 'none';
 }
 
-// Save file to user's computer
-export function saveFile(blob, filename) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename || 'download.mp3';
-  a.style.display = 'none';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+// Show download popup
+export function showDownloadPopup(url, filename) {
+  downloadLink.href = url;
+  downloadLink.download = filename;
+  downloadPopup.hidden = false;
+}
+
+// Hide download popup
+export function hideDownloadPopup() {
+  downloadPopup.hidden = true;
+  downloadLink.href = '';
+  downloadLink.download = '';
 }
