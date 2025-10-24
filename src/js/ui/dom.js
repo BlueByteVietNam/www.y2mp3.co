@@ -6,7 +6,7 @@ export const progressText = document.getElementById('progressText');
 export const modeSwitch = document.getElementById('modeSwitch');
 
 // Mode state
-export let isVideoMode = false;
+export let isVideoMode = true;
 
 export function toggleMode() {
   isVideoMode = !isVideoMode;
