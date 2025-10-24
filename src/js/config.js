@@ -1,5 +1,5 @@
 // API Configuration
-export const API_URL = "http://test.y2mp3.co:9000/";
+export const API_URL = "https://test.y2mp3.co:9000/";
 export const AUTH_TOKEN = '';
 
 // Default request configurations
