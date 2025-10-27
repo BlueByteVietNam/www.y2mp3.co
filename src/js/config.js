@@ -1,5 +1,5 @@
 // API Configuration
-export const API_URL = "https://sv-190.y2mp3.co";
+export const API_URL = "https://sv-190.y2mp3.co/"
 export const AUTH_TOKEN = '';
 
 // Default request configurations

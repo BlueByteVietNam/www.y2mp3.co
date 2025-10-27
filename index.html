@@ -10,7 +10,7 @@
   <meta name="description" content="Convert YouTube videos to MP3 in seconds. Y2MP3 is a free, fast, and simple YouTube to MP3 downloader with high-quality 128kbps audio. No registration required.">
   <meta name="keywords" content="youtube to mp3, youtube mp3 converter, youtube downloader, download youtube mp3, free youtube to mp3, youtube to mp3 online, mp3 converter, y2mp3">
   <meta name="author" content="Y2MP3">
-  <meta name="robots" content="index, follow">
+  <meta name="robots" content="noindex, nofollow">
   <link rel="canonical" href="https://y2mp3.co/">
 
   <!-- Open Graph / Facebook -->
@@ -26,210 +26,43 @@
   <meta property="twitter:title" content="Y2MP3 - Free YouTube to MP3 Converter & Downloader">
   <meta property="twitter:description" content="Free YouTube to MP3 converter. Convert YouTube videos to MP3 quickly with no registration.">
 
-  <!-- Schema.org JSON-LD -->
-  <script type="application/ld+json">
-  {
-    "@context": "https://schema.org",
-    "@type": "WebApplication",
-    "name": "Y2MP3",
-    "url": "https://y2mp3.co/",
-    "description": "Free online YouTube to MP3 converter. Download MP3 from YouTube videos in 128kbps audio instantly.",
-    "applicationCategory": "MultimediaApplication",
-    "operatingSystem": "Any",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "USD"
-    },
-    "featureList": [
-      "Instant YouTube to MP3 conversion (128kbps)",
-      "Unlimited downloads",
-      "No registration required",
-      "Free online YouTube downloader"
-    ],
-    "aggregateRating": {
-      "@type": "AggregateRating",
-      "ratingValue": "4.8",
-      "ratingCount": "15420"
-    }
-  }
-  </script>
+  <!-- Styles -->
+  <link rel="stylesheet" href="./src/css/main.css">
 </head>
 <body>
-  <!-- Header -->
-  <header>
-    <h1>Y2MP3 - Free YouTube to MP3 Downloader</h1>
-    <p><strong>Convert YouTube videos to MP3 online, free and fast.</strong></p>
-  </header>
-
-  <hr>
-
   <!-- Main Content -->
   <main>
     <section>
-      <h2>Convert and Download YouTube to MP3</h2>
+      <!-- ALL IN ONE INPUT -->
+      <div class="converter">
+        <!-- Input Container with overlays -->
+        <div class="input-container">
+          <!-- Format Switcher (inside input, left) -->
+          <div class="format-switcher">
+            <button id="formatToggle" class="format-toggle" aria-label="Toggle between MP3 and MP4 format">
+              <span class="format-option active" data-format="mp3">MP3</span>
+              <span class="format-divider">|</span>
+              <span class="format-option" data-format="mp4">MP4</span>
+            </button>
+          </div>
 
-      <p>
-        Paste a YouTube video link below to convert it to MP3 format instantly. Y2MP3 provides
-        high-quality 128kbps audio downloads with no signup or software installation required.
-      </p>
+          <!-- Input Field -->
+          <input
+            id="urlInput"
+            type="url"
+            placeholder="Paste YouTube link here..."
+            autocomplete="off"
+            aria-label="YouTube URL input"
+          >
 
-      <p>
-        <strong>Current Mode:</strong>
-        <button id="modeSwitch" aria-label="Switch between MP3 audio and video mode">MP3</button>
-      </p>
-
-      <form onsubmit="return false;">
-        <label for="urlInput"><strong>Paste YouTube URL:</strong></label><br>
-        <input
-          type="url"
-          id="urlInput"
-          name="youtube-url"
-          placeholder="https://www.youtube.com/watch?v=..."
-          autocomplete="off"
-          size="60"
-          aria-required="true"
-          aria-describedby="urlHelp"
-        >
-        <p id="urlHelp"><small>Enter your YouTube video link and press Enter to convert.</small></p>
-      </form>
-
-      <div id="status" role="status" aria-live="polite"></div>
-
-      <p>
-        <progress
-          id="progress"
-          value="0"
-          max="100"
-          aria-label="Download progress"
-        ></progress>
-      </p>
-
-      <div id="progressText" aria-live="polite"></div>
-
-      <!-- Download Popup -->
-      <div id="downloadPopup" hidden>
-        <p><strong>✓ Ready to download!</strong></p>
-        <p>
-          <a id="downloadLink" download="" href="">Click here to download</a>
-        </p>
-        <p>
-          <button id="closePopup">Close</button>
-        </p>
+          <!-- Paste Button (inside input, right) -->
+          <button id="pasteBtn" class="paste-btn" aria-label="Paste and download">
+            📋 Paste Link
+          </button>
+        </div>
       </div>
     </section>
 
-    <hr>
-
-    <!-- Features Section -->
-    <section>
-      <h2>Why Choose Y2MP3?</h2>
-      <ul>
-        <li><strong>Free Forever:</strong> Download and convert unlimited YouTube videos to MP3.</li>
-        <li><strong>Fast Conversion:</strong> Convert YouTube to MP3 in just seconds.</li>
-        <li><strong>High-Quality Audio:</strong> Get clear MP3 sound at 128kbps.</li>
-        <li><strong>No Ads or Registration:</strong> Simple, safe, and distraction-free.</li>
-        <li><strong>Works Everywhere:</strong> Compatible with all browsers and devices.</li>
-      </ul>
-    </section>
-
-    <hr>
-
-    <!-- How to Use Section -->
-    <section>
-      <h2>How to Convert YouTube to MP3 with Y2MP3</h2>
-      <ol>
-        <li>Copy the YouTube video link you want to convert.</li>
-        <li>Paste the URL in the box above.</li>
-        <li>Make sure “MP3 Audio” mode is selected.</li>
-        <li>Press Enter or wait for the process to start automatically.</li>
-        <li>Click “Download MP3” when it’s ready — done!</li>
-      </ol>
-    </section>
-
-    <hr>
-
-    <!-- FAQ Section -->
-    <section itemscope itemtype="https://schema.org/FAQPage">
-      <h2>Frequently Asked Questions</h2>
-
-      <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-        <h3 itemprop="name">Is Y2MP3 free to use?</h3>
-        <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-          <p itemprop="text">Yes! Y2MP3 is a completely free YouTube to MP3 converter with no hidden fees or limits.</p>
-        </div>
-      </article>
-
-      <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-        <h3 itemprop="name">What audio quality does Y2MP3 provide?</h3>
-        <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-          <p itemprop="text">All MP3 files are converted at 128kbps bitrate, offering clear and balanced sound quality.</p>
-        </div>
-      </article>
-
-      <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-        <h3 itemprop="name">Do I need to install anything?</h3>
-        <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-          <p itemprop="text">No. Y2MP3 runs entirely online — no software or app installation is needed.</p>
-        </div>
-      </article>
-
-      <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-        <h3 itemprop="name">Can I use Y2MP3 on my phone?</h3>
-        <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-          <p itemprop="text">Yes! Y2MP3 works perfectly on mobile browsers for both Android and iOS devices.</p>
-        </div>
-      </article>
-
-      <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-        <h3 itemprop="name">Is there a download limit?</h3>
-        <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-          <p itemprop="text">No limits. Convert and download as many YouTube MP3 files as you like for free.</p>
-        </div>
-      </article>
-    </section>
-
-    <hr>
-
-    <!-- About Section -->
-    <section>
-      <h2>About Y2MP3</h2>
-      <p>
-        <strong>Y2MP3</strong> is the fastest and easiest way to convert YouTube videos to MP3 format online.
-        Whether you need a quick <em>YouTube MP3 downloader</em> or a free <em>YouTube to MP3 converter</em>,
-        Y2MP3 offers a simple, high-speed experience without ads or registration.
-      </p>
-      <p>
-        Convert YouTube videos to MP3 audio at 128kbps and enjoy music anytime, anywhere. 
-        It’s secure, free, and works on all devices.
-      </p>
-      <p>
-        <em>Keywords:</em> youtube to mp3, youtube downloader, youtube to mp3 converter, 
-        mp3 converter online, youtube mp3 downloader, free youtube to mp3
-      </p>
-    </section>
-  </main>
-
-  <hr>
-
-  <!-- Footer -->
-  <footer>
-    <p>
-      <small>
-        &copy; 2025 Y2MP3.co - Free YouTube to MP3 Converter & Downloader<br>
-        <a href="#top">Back to Top</a> |
-        <a href="/privacy">Privacy Policy</a> |
-        <a href="/terms">Terms of Service</a> |
-        <a href="/contact">Contact</a>
-      </small>
-    </p>
-    <p>
-      <small>
-        <strong>Disclaimer:</strong> Y2MP3 is not affiliated with YouTube. 
-        Users are responsible for following copyright laws and YouTube’s Terms of Service.
-      </small>
-    </p>
-  </footer>
 
   <script type="module" src="./src/js/main.js"></script>
 </body>

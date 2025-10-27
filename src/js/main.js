@@ -1,2 +1,5 @@
 // Main entry point
-import './ui/events.js';
+import { init } from './app.js';
+
+// Initialize app
+init();
