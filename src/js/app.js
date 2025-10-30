@@ -54,18 +54,7 @@ function setState(state) {
 /**
  * Trigger browser download
  */
-async function triggerDownload(url, filename) {
-  // Verify URL is accessible before triggering download
-  try {
-    const response = await fetch(url, { method: 'HEAD' });
-    if (!response.ok) {
-      throw new Error(`Stream not available (${response.status})`);
-    }
-  } catch (error) {
-    console.error('Stream verification failed:', error);
-    throw new Error('Download link expired or unavailable. Please try again.');
-  }
-
+function triggerDownload(url, filename) {
   const a = document.createElement('a');
   a.href = url;
   a.download = filename || 'download';
