@@ -128,8 +128,8 @@ async function handleDownload() {
 
       const filename = response.filename || `download_${Date.now()}`;
 
-      // Trigger browser download with verification
-      await triggerDownload(response.url, filename);
+      // Trigger browser download immediately
+      triggerDownload(response.url, filename);
 
       // Show success message
       showSuccess(`✓ Download started: ${filename}`);
