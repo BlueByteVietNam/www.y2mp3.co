@@ -1,7 +1,12 @@
-import { API_URL, AUTH_TOKEN, AUDIO_CONFIG, VIDEO_CONFIG } from '../config.js';
+import { API_URL, AUTH_TOKEN } from '../config.js';
 
-// Call API to get download URL
-export async function getDownloadURL(url, isVideoMode = false) {
+/**
+ * Call API to get download URL with custom options
+ * @param {string} url - YouTube URL
+ * @param {Object} options - Download options matching backend schema
+ * @returns {Promise<Object>} API response
+ */
+export async function getDownloadURL(url, options = {}) {
   const headers = {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
@@ -11,20 +16,26 @@ export async function getDownloadURL(url, isVideoMode = false) {
     headers['Authorization'] = `Api-Key ${AUTH_TOKEN}`;
   }
 
-  const config = isVideoMode ? VIDEO_CONFIG : AUDIO_CONFIG;
+  // Build request body - only include provided options
+  const body = {
+    url,
+    ...options
+  };
+
+  console.log('API Request:', body);
 
   const response = await fetch(API_URL, {
     method: 'POST',
     headers,
-    body: JSON.stringify({
-      url,
-      ...config
-    })
+    body: JSON.stringify(body)
   });
 
   if (!response.ok) {
     throw new Error(`HTTP ${response.status}`);
   }
 
-  return await response.json();
+  const result = await response.json();
+  console.log('API Response:', result);
+
+  return result;
 }

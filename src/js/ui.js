@@ -1,83 +1,159 @@
-// Pure UI module - Only handles DOM updates, no business logic
+/**
+ * UI Module - Manages all DOM elements and form controls
+ * Pure UI logic, no business logic
+ */
 
+import { AUDIO_DEFAULTS, VIDEO_DEFAULTS } from './config.js';
+
+// Cache DOM elements
 const elements = {
-  btn: document.getElementById('pasteBtn'),
-  toggle: document.getElementById('formatToggle'),
-  input: document.getElementById('urlInput')
+  urlInput: document.getElementById('urlInput'),
+  downloadBtn: document.getElementById('downloadBtn'),
+  statusMsg: document.getElementById('statusMsg'),
+
+  // Mode buttons
+  modeButtons: document.querySelectorAll('.mode-btn'),
+
+  // Audio options
+  audioFormat: document.getElementById('audioFormat'),
+  audioBitrate: document.getElementById('audioBitrate'),
+  audioGroup: document.querySelector('[data-group="audio"]'),
+
+  // Video options
+  videoQuality: document.getElementById('videoQuality'),
+  videoCodec: document.getElementById('videoCodec'),
+  videoContainer: document.getElementById('videoContainer'),
+  videoGroup: document.querySelector('[data-group="video"]')
 };
 
-let format = 'MP3';
+let currentMode = 'audio'; // 'audio' or 'video'
 
 /**
- * Update button text and disabled state
- * @param {string} text - Button text
- * @param {boolean} disabled - Disabled state
- * @param {boolean} isToggle - Is format toggle button
+ * Get current download mode
  */
-export function updateButton(text, disabled, isToggle = false) {
-  const el = isToggle ? elements.toggle : elements.btn;
-  el.textContent = text;
-  el.disabled = disabled;
+export function getMode() {
+  return currentMode;
+}
 
-  if (isToggle) format = text;
+/**
+ * Set mode and update UI
+ */
+export function setMode(mode) {
+  currentMode = mode;
+
+  // Update mode buttons
+  elements.modeButtons.forEach(btn => {
+    if (btn.dataset.mode === mode) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  // Show/hide relevant options (always visible now)
+  if (mode === 'audio') {
+    elements.audioGroup.style.display = 'block';
+    elements.videoGroup.style.display = 'none';
+  } else {
+    elements.audioGroup.style.display = 'none';
+    elements.videoGroup.style.display = 'block';
+  }
+}
+
+/**
+ * Get mode button elements
+ */
+export function getModeButtons() {
+  return elements.modeButtons;
 }
 
 /**
  * Get URL from input
- * @returns {string} Trimmed URL
  */
 export function getURL() {
-  return elements.input.value.trim();
+  return elements.urlInput.value.trim();
 }
 
 /**
- * Clear input field
+ * Clear URL input
  */
-export function clearInput() {
-  elements.input.value = '';
+export function clearURL() {
+  elements.urlInput.value = '';
 }
 
 /**
- * Get current format (MP3 or MP4)
- * @returns {string} Current format
+ * Get download button
  */
-export function getFormat() {
-  return format;
+export function getDownloadBtn() {
+  return elements.downloadBtn;
 }
 
 /**
- * Get paste button element
- * @returns {HTMLElement}
+ * Update download button state
  */
-export function getPasteButton() {
-  return elements.btn;
+export function setButtonState(text, disabled = false) {
+  const textSpan = elements.downloadBtn.querySelector('.btn-text');
+
+  if (textSpan) textSpan.textContent = text;
+  elements.downloadBtn.disabled = disabled;
 }
 
 /**
- * Get format toggle button element
- * @returns {HTMLElement}
+ * Get all form options as object (matching backend schema)
  */
-export function getFormatToggle() {
-  return elements.toggle;
-}
+export function getOptions() {
+  const baseOptions = currentMode === 'audio'
+    ? { ...AUDIO_DEFAULTS }
+    : { ...VIDEO_DEFAULTS };
 
-/**
- * Show error message
- * @param {string} msg - Error message
- */
-export function showError(msg) {
-  elements.input.classList.add('error');
-
-  let errorEl = document.querySelector('.error-msg');
-  if (!errorEl) {
-    errorEl = document.createElement('div');
-    errorEl.className = 'error-msg';
-    elements.input.parentElement.appendChild(errorEl);
+  // Override with user selections
+  if (currentMode === 'audio') {
+    baseOptions.audioFormat = elements.audioFormat.value;
+    baseOptions.audioBitrate = elements.audioBitrate.value;
+  } else {
+    baseOptions.videoQuality = elements.videoQuality.value;
+    baseOptions.youtubeVideoCodec = elements.videoCodec.value;
+    baseOptions.youtubeVideoContainer = elements.videoContainer.value;
   }
-  errorEl.textContent = msg;
+
+  return baseOptions;
+}
+
+/**
+ * Show status message
+ */
+export function showStatus(message, type = 'info') {
+  elements.statusMsg.textContent = message;
+  elements.statusMsg.className = `status-msg ${type}`;
+  elements.statusMsg.style.display = 'block';
+}
+
+/**
+ * Hide status message
+ */
+export function hideStatus() {
+  elements.statusMsg.style.display = 'none';
+}
+
+/**
+ * Show error with input highlight
+ */
+export function showError(message) {
+  elements.urlInput.classList.add('error');
+  showStatus(message, 'error');
 
   setTimeout(() => {
-    elements.input.classList.remove('error');
-    if (errorEl) errorEl.remove();
+    elements.urlInput.classList.remove('error');
+  }, 3000);
+}
+
+/**
+ * Show success message
+ */
+export function showSuccess(message) {
+  showStatus(message, 'success');
+
+  setTimeout(() => {
+    hideStatus();
   }, 3000);
 }

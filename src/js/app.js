@@ -1,64 +1,74 @@
-// Main app logic with state machine
+/**
+ * App Module - Main application logic
+ * Handles download flow, state management, and event listeners
+ */
+
 import {
-  updateButton,
+  setMode,
+  getModeButtons,
   getURL,
-  getFormat,
-  getPasteButton,
-  getFormatToggle,
-  showError
+  getDownloadBtn,
+  getOptions,
+  setButtonState,
+  showError,
+  showSuccess,
+  showStatus,
+  hideStatus
 } from './ui.js';
 import { getDownloadURL } from './api/client.js';
 import { isYouTubeURL } from './utils/validate.js';
 
-// State machine states
+// App states
 const STATE = {
-  EMPTY: 'empty',
+  IDLE: 'idle',
   PROCESSING: 'processing',
-  DOWNLOADING: 'downloading',
-  READY: 'ready'
+  DOWNLOADING: 'downloading'
 };
 
-let currentState = STATE.EMPTY;
+let currentState = STATE.IDLE;
 
 /**
- * State machine - Updates UI based on current state
- * @param {string} newState - New state to transition to
+ * Update UI based on state
  */
-function setState(newState) {
-  currentState = newState;
+function setState(state) {
+  currentState = state;
 
-  switch (newState) {
-    case STATE.EMPTY:
-      updateButton('📋 Paste Link', false);
+  switch (state) {
+    case STATE.IDLE:
+      setButtonState('Download', false);
+      hideStatus();
       break;
 
     case STATE.PROCESSING:
-      updateButton('⏳ Processing...', true);
+      setButtonState('Processing...', true);
+      showStatus('Processing your request...', 'info');
       break;
 
     case STATE.DOWNLOADING:
-      updateButton('⬇️ Downloading...', true);
-      break;
-
-    case STATE.READY:
-      updateButton('📋 Paste Link', false);
-      // Auto reset after 1 second
-      setTimeout(() => {
-        setState(STATE.EMPTY);
-      }, 1000);
+      setButtonState('Downloading...', true);
+      showStatus('Preparing download...', 'info');
       break;
   }
 }
 
 /**
- * Auto trigger download
- * @param {string} url - Download URL
- * @param {string} filename - Filename
+ * Trigger browser download
  */
-function triggerDownload(url, filename) {
+async function triggerDownload(url, filename) {
+  // Verify URL is accessible before triggering download
+  try {
+    const response = await fetch(url, { method: 'HEAD' });
+    if (!response.ok) {
+      throw new Error(`Stream not available (${response.status})`);
+    }
+  } catch (error) {
+    console.error('Stream verification failed:', error);
+    throw new Error('Download link expired or unavailable. Please try again.');
+  }
+
   const a = document.createElement('a');
   a.href = url;
-  a.download = filename;
+  a.download = filename || 'download';
   a.style.display = 'none';
   document.body.appendChild(a);
   a.click();
@@ -66,27 +76,45 @@ function triggerDownload(url, filename) {
 }
 
 /**
- * Main paste and download handler
+ * Parse error from backend response
  */
-async function handlePaste() {
-  // Only allow paste when in EMPTY or READY state
-  if (currentState !== STATE.EMPTY && currentState !== STATE.READY) return;
+function parseError(error) {
+  if (error?.error?.code) {
+    const code = error.error.code;
 
-  let url = '';
+    // Map backend error codes to user-friendly messages
+    const errorMap = {
+      'error.api.link.missing': 'Please provide a YouTube URL',
+      'error.api.link.invalid': 'Invalid YouTube URL',
+      'error.api.link.unsupported': 'This service is not supported',
+      'error.api.invalid_body': 'Invalid request parameters',
+      'error.api.content.too_long': 'Video is too long (max duration exceeded)',
+      'error.api.fetch.critical': 'Failed to fetch video information',
+      'error.api.fetch.critical.core': 'Critical server error'
+    };
 
-  // Try to get URL from clipboard first
-  try {
-    url = await navigator.clipboard.readText();
-  } catch (err) {
-    // Fallback to input field value
-    url = getURL();
+    return errorMap[code] || `Error: ${code}`;
   }
 
-  url = url.trim();
+  return 'Download failed. Please try again.';
+}
+
+/**
+ * Main download handler
+ */
+async function handleDownload() {
+  if (currentState !== STATE.IDLE) return;
+
+  const url = getURL();
 
   // Validate URL
-  if (!url || !isYouTubeURL(url)) {
-    showError('Please paste a valid YouTube URL');
+  if (!url) {
+    showError('Please enter a YouTube URL');
+    return;
+  }
+
+  if (!isYouTubeURL(url)) {
+    showError('Please enter a valid YouTube URL');
     return;
   }
 
@@ -94,73 +122,87 @@ async function handlePaste() {
   setState(STATE.PROCESSING);
 
   try {
-    // Wait 3s before fetching (URL needs time to stream)
+    // Get options from UI
+    const options = getOptions();
 
-    // Get download URL from API
-    const response = await getDownloadURL(url, getFormat() === 'MP4');
+    console.log('Download Request:', { url, options });
 
-    if (response.status === 'tunnel' || response.status === 'redirect') {
+    // Call API
+    const response = await getDownloadURL(url, options);
 
-      // Generate filename
-      const ext = getFormat().toLowerCase();
-      const filename = response.filename || `download_${Date.now()}.${ext}`;
+    console.log('Download Response:', response);
 
-      // Auto trigger browser download
-      triggerDownload(response.url, filename);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      // Show success
-      setState(STATE.READY);
+    // Handle different response statuses
+    if (response.status === 'stream' || response.status === 'static') {
+      // SUCCESS - Backend returned download URL
+      setState(STATE.DOWNLOADING);
+
+      const filename = response.filename || `download_${Date.now()}`;
+
+      // Trigger browser download with verification
+      await triggerDownload(response.url, filename);
+
+      // Show success message
+      showSuccess(`✓ Download started: ${filename}`);
+
+      // Reset to idle after delay
+
+      setState(STATE.IDLE);
+
+    } else if (response.status === 'error') {
+      // ERROR - Backend returned error
+      throw response;
 
     } else {
-      throw new Error(response.error?.code || 'Download failed');
+      // UNEXPECTED - Unknown status
+      throw new Error(`Unexpected response status: ${response.status}`);
     }
 
   } catch (error) {
-    console.error('Error:', error);
-    showError('Download failed. Please try again.');
-    setState(STATE.EMPTY);
+    console.error('Download Error:', error);
+
+    const errorMsg = parseError(error);
+    showError(errorMsg);
+
+    setState(STATE.IDLE);
   }
 }
 
 /**
- * Toggle format between MP3 and MP4 (switcher style)
+ * Handle mode switch (MP3/MP4)
  */
-function handleFormatToggle(event) {
-  // Check if clicked on a format option
-  const option = event.target.closest('.format-option');
-  if (!option) return;
+function handleModeSwitch(event) {
+  const btn = event.target.closest('.mode-btn');
+  if (!btn) return;
 
-  const format = option.dataset.format.toUpperCase();
-
-  // Update active state
-  document.querySelectorAll('.format-option').forEach(opt => {
-    opt.classList.remove('active');
-  });
-  option.classList.add('active');
-
-  // Update format in UI module
-  updateButton(format, false, true);
+  const mode = btn.dataset.mode;
+  setMode(mode);
 }
 
 /**
- * Initialize app - Setup event listeners
+ * Initialize app
  */
 export function init() {
-  const input = document.getElementById('urlInput');
+  // Mode toggle
+  getModeButtons().forEach(btn => {
+    btn.addEventListener('click', handleModeSwitch);
+  });
 
-  // Paste button click
-  getPasteButton().onclick = handlePaste;
+  // Download button
+  getDownloadBtn().addEventListener('click', handleDownload);
 
-  // Format toggle click (delegate to format options)
-  getFormatToggle().onclick = handleFormatToggle;
-
-  // Enter key support
-  input.onkeydown = (e) => {
-    if (e.key === 'Enter') handlePaste();
-  };
+  // Enter key on input
+  const urlInput = document.getElementById('urlInput');
+  urlInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      handleDownload();
+    }
+  });
 
   // Initialize state
-  setState(STATE.EMPTY);
+  setState(STATE.IDLE);
+  setMode('audio'); // Default to audio mode
 
-  console.log('Y2MP3 initialized - All In One Input mode');
+  console.log('✓ Y2MP3 initialized - Simple UI with full options');
+  console.log('Backend API Schema: 100% mapped');
 }

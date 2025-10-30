@@ -32,35 +32,105 @@
 <body>
   <!-- Main Content -->
   <main>
-    <section>
-      <!-- ALL IN ONE INPUT -->
-      <div class="converter">
-        <!-- Input Container with overlays -->
-        <div class="input-container">
-          <!-- Format Switcher (inside input, left) -->
-          <div class="format-switcher">
-            <button id="formatToggle" class="format-toggle" aria-label="Toggle between MP3 and MP4 format">
-              <span class="format-option active" data-format="mp3">MP3</span>
-              <span class="format-divider">|</span>
-              <span class="format-option" data-format="mp4">MP4</span>
-            </button>
-          </div>
+    <section class="converter">
+      <!-- Simple Mode (Default) -->
+      <div class="simple-mode">
+        <!-- Mode Toggle -->
+        <div class="mode-toggle">
+          <button class="mode-btn active" data-mode="audio">MP3</button>
+          <button class="mode-btn" data-mode="video">MP4</button>
+        </div>
 
-          <!-- Input Field -->
+        <!-- URL Input -->
+        <div class="input-wrapper">
           <input
             id="urlInput"
             type="url"
-            placeholder="Paste YouTube link here..."
+            placeholder="Paste YouTube URL here..."
             autocomplete="off"
-            aria-label="YouTube URL input"
+            aria-label="YouTube URL"
           >
-
-          <!-- Paste Button (inside input, right) -->
-          <button id="pasteBtn" class="paste-btn" aria-label="Paste and download">
-            📋 Paste Link
-          </button>
         </div>
       </div>
+
+      <!-- Options (Always visible) -->
+      <div id="advancedOptions" class="advanced-options">
+        <!-- Audio Options -->
+        <div class="options-group" data-group="audio">
+          <h3>Audio Settings</h3>
+
+          <div class="option">
+            <label for="audioFormat">Format</label>
+            <select id="audioFormat">
+              <option value="mp3">MP3</option>
+              <option value="best">Best Quality</option>
+              <option value="ogg">OGG</option>
+              <option value="wav">WAV</option>
+              <option value="opus">Opus</option>
+            </select>
+          </div>
+
+          <div class="option">
+            <label for="audioBitrate">Bitrate</label>
+            <select id="audioBitrate">
+              <option value="128">128 kbps (Default)</option>
+              <option value="320">320 kbps (High)</option>
+              <option value="256">256 kbps</option>
+              <option value="96">96 kbps</option>
+              <option value="64">64 kbps</option>
+              <option value="8">8 kbps (Low)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Video Options -->
+        <div class="options-group" data-group="video" style="display: none;">
+          <h3>Video Settings</h3>
+
+          <div class="option">
+            <label for="videoQuality">Quality</label>
+            <select id="videoQuality">
+              <option value="1080">1080p (Full HD)</option>
+              <option value="max">Max Quality</option>
+              <option value="4320">4320p (8K)</option>
+              <option value="2160">2160p (4K)</option>
+              <option value="1440">1440p (2K)</option>
+              <option value="720">720p (HD)</option>
+              <option value="480">480p</option>
+              <option value="360">360p</option>
+              <option value="240">240p</option>
+              <option value="144">144p</option>
+            </select>
+          </div>
+
+          <div class="option">
+            <label for="videoCodec">Codec</label>
+            <select id="videoCodec">
+              <option value="h264">H.264 (Best compatibility)</option>
+              <option value="av1">AV1 (Best quality)</option>
+              <option value="vp9">VP9 (Balanced)</option>
+            </select>
+          </div>
+
+          <div class="option">
+            <label for="videoContainer">Format</label>
+            <select id="videoContainer">
+              <option value="mp4">MP4</option>
+              <option value="auto">Auto</option>
+              <option value="webm">WebM</option>
+              <option value="mkv">MKV</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Download Button -->
+      <button id="downloadBtn" class="download-btn">
+        <span class="btn-text">Download</span>
+      </button>
+
+      <!-- Status/Error Message -->
+      <div id="statusMsg" class="status-msg"></div>
     </section>
 
 
