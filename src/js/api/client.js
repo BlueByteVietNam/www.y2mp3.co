@@ -22,8 +22,6 @@ export async function getDownloadURL(url, options = {}) {
     ...options
   };
 
-  console.log('API Request:', body);
-
   const response = await fetch(API_URL, {
     method: 'POST',
     headers,
@@ -35,7 +33,6 @@ export async function getDownloadURL(url, options = {}) {
   }
 
   const result = await response.json();
-  console.log('API Response:', result);
 
   return result;
 }

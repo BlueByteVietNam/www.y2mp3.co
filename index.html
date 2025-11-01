@@ -30,109 +30,139 @@
   <link rel="stylesheet" href="./src/css/main.css">
 </head>
 <body>
-  <!-- Main Content -->
-  <main>
-    <section class="converter">
-      <!-- Simple Mode (Default) -->
-      <div class="simple-mode">
-        <!-- Mode Toggle -->
-        <div class="mode-toggle">
-          <button class="mode-btn active" data-mode="audio">MP3</button>
-          <button class="mode-btn" data-mode="video">MP4</button>
-        </div>
+  <!-- Skip to main content link for accessibility -->
+  <a href="#main-content" class="skip-link">Skip to main content</a>
 
-        <!-- URL Input -->
-        <div class="input-wrapper">
+  <!-- Header -->
+  <header class="header" role="banner">
+    <div class="header-container">
+      <div class="logo" aria-label="Y2MP3 Logo">Y<span class="logo-accent">2</span>MP3</div>
+      <nav class="nav" role="navigation" aria-label="Main navigation">
+        <a href="#" class="nav-link">HOME</a>
+        <a href="#faq" class="nav-link">FAQ</a>
+        <a href="#about" class="nav-link">ABOUT</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main id="main-content">
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-container">
+        <!-- Converter Box -->
+        <div class="converter-box">
+          <h2 class="converter-title" id="converterTitle">Insert a valid video URL</h2>
+
+          <!-- Video Title (hidden by default) -->
+          <div class="video-title" id="videoTitle"></div>
+
+          <!-- URL Input -->
           <input
             id="urlInput"
             type="url"
-            placeholder="Paste YouTube URL here..."
+            class="url-input"
+            placeholder="youtube.com/watch?v=j0u7ub3-ur1"
             autocomplete="off"
-            aria-label="YouTube URL"
+            aria-label="YouTube video URL input"
+            aria-describedby="converterTitle"
           >
+
+          <!-- Controls -->
+          <div class="controls" id="controls">
+            <!-- Format Switcher with Quality -->
+            <div class="format-switcher" role="group" aria-label="Format selection">
+              <!-- MP3 Button with Dropdown -->
+              <div class="format-option" data-mode="audio">
+                <button class="format-btn active" data-mode="audio" aria-label="Select MP3 audio format">
+                  <span class="format-label">MP3</span>
+                  <span class="format-quality" id="audioQuality">128kbps</span>
+                </button>
+                <div class="quality-dropdown" role="menu" aria-label="Audio quality options">
+                  <button class="quality-item" data-format="mp3" data-bitrate="128" role="menuitem">MP3 - 128kbps</button>
+                  <button class="quality-item" data-format="mp3" data-bitrate="320" role="menuitem">MP3 - 320kbps</button>
+                  <button class="quality-item" data-format="best" data-bitrate="320" role="menuitem">Best Quality</button>
+                  <button class="quality-item" data-format="ogg" data-bitrate="128" role="menuitem">OGG</button>
+                  <button class="quality-item" data-format="wav" data-bitrate="128" role="menuitem">WAV</button>
+                  <button class="quality-item" data-format="opus" data-bitrate="128" role="menuitem">Opus</button>
+                </div>
+              </div>
+
+              <!-- MP4 Button with Dropdown -->
+              <div class="format-option" data-mode="video">
+                <button class="format-btn" data-mode="video" aria-label="Select MP4 video format">
+                  <span class="format-label">MP4</span>
+                  <span class="format-quality" id="videoQualityText">1080p</span>
+                </button>
+                <div class="quality-dropdown" role="menu" aria-label="Video quality options">
+                  <button class="quality-item" data-quality="1080" role="menuitem">1080p (Full HD)</button>
+                  <button class="quality-item" data-quality="720" role="menuitem">720p (HD)</button>
+                  <button class="quality-item" data-quality="480" role="menuitem">480p</button>
+                  <button class="quality-item" data-quality="360" role="menuitem">360p</button>
+                  <button class="quality-item" data-quality="max" role="menuitem">Max Quality</button>
+                  <button class="quality-item" data-quality="2160" role="menuitem">2160p (4K)</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Convert Button -->
+            <button id="convertBtn" class="convert-btn" aria-label="Start conversion">
+              <span class="btn-text">Convert</span>
+            </button>
+          </div>
+
+          <!-- Download Actions (hidden by default) -->
+          <div class="download-actions" id="downloadActions" style="display: none;">
+            <button id="downloadBtn" class="action-btn download-btn-primary" aria-label="Download converted file">Download</button>
+            <button id="nextBtn" class="action-btn next-btn" aria-label="Start new conversion">Next</button>
+          </div>
+
+          <!-- Hidden fields for backend -->
+          <input type="hidden" id="audioBitrate" value="128">
+          <input type="hidden" id="videoQuality" value="1080">
+          <input type="hidden" id="videoCodec" value="h264">
+          <input type="hidden" id="videoContainer" value="mp4">
         </div>
       </div>
-
-      <!-- Options (Always visible) -->
-      <div id="advancedOptions" class="advanced-options">
-        <!-- Audio Options -->
-        <div class="options-group" data-group="audio">
-          <h3>Audio Settings</h3>
-
-          <div class="option">
-            <label for="audioFormat">Format</label>
-            <select id="audioFormat">
-              <option value="mp3">MP3</option>
-              <option value="best">Best Quality</option>
-              <option value="ogg">OGG</option>
-              <option value="wav">WAV</option>
-              <option value="opus">Opus</option>
-            </select>
-          </div>
-
-          <div class="option">
-            <label for="audioBitrate">Bitrate</label>
-            <select id="audioBitrate">
-              <option value="128">128 kbps (Default)</option>
-              <option value="320">320 kbps (High)</option>
-              <option value="256">256 kbps</option>
-              <option value="96">96 kbps</option>
-              <option value="64">64 kbps</option>
-              <option value="8">8 kbps (Low)</option>
-            </select>
-          </div>
-        </div>
-
-        <!-- Video Options -->
-        <div class="options-group" data-group="video" style="display: none;">
-          <h3>Video Settings</h3>
-
-          <div class="option">
-            <label for="videoQuality">Quality</label>
-            <select id="videoQuality">
-              <option value="1080">1080p (Full HD)</option>
-              <option value="max">Max Quality</option>
-              <option value="4320">4320p (8K)</option>
-              <option value="2160">2160p (4K)</option>
-              <option value="1440">1440p (2K)</option>
-              <option value="720">720p (HD)</option>
-              <option value="480">480p</option>
-              <option value="360">360p</option>
-              <option value="240">240p</option>
-              <option value="144">144p</option>
-            </select>
-          </div>
-
-          <div class="option">
-            <label for="videoCodec">Codec</label>
-            <select id="videoCodec">
-              <option value="h264">H.264 (Best compatibility)</option>
-              <option value="av1">AV1 (Best quality)</option>
-              <option value="vp9">VP9 (Balanced)</option>
-            </select>
-          </div>
-
-          <div class="option">
-            <label for="videoContainer">Format</label>
-            <select id="videoContainer">
-              <option value="mp4">MP4</option>
-              <option value="auto">Auto</option>
-              <option value="webm">WebM</option>
-              <option value="mkv">MKV</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <!-- Download Button -->
-      <button id="downloadBtn" class="download-btn">
-        <span class="btn-text">Download</span>
-      </button>
-
-      <!-- Status/Error Message -->
-      <div id="statusMsg" class="status-msg"></div>
     </section>
 
+    <!-- Content Section -->
+    <section class="content">
+      <div class="content-container">
+        <h1 class="content-title">YouTube to MP3 Converter</h1>
+
+        <p class="content-text">
+          With <a href="https://y2mp3.co" class="content-link">Y2MP3</a> you can easily convert YouTube videos to MP3 (audio) or MP4 (video) files and download them for free - this service works for computers, tablets, and mobile devices.
+        </p>
+
+        <p class="content-text">
+          The videos are always converted to the highest available quality. Please note that we can only convert videos up to 90 minutes - the limit is necessary, so the conversion takes no more than just a couple of minutes.
+        </p>
+
+        <p class="content-text">
+          Our service is free and does not require any software or registration. By using our service you are accepting our <a href="#" class="content-link">Terms of Use</a>.
+        </p>
+
+        <h3 class="content-subtitle">How to convert a YouTube video:</h3>
+
+        <p class="content-text">
+          1. Search a video on youtube.com and copy the video URL. Paste the video URL above in our converter.
+        </p>
+
+        <p class="content-text">
+          2. Choose a format. You can choose between MP3 or MP4. If no choice is made, the video will be converted to MP3 by default.
+        </p>
+
+        <p class="content-text">
+          3. Click on the "Convert" button to start the conversion. The conversion might take a while. As soon as the conversion is completed you will be able to download the converted video by clicking on the "Download" button. That's all!
+        </p>
+
+        <p class="content-text">
+          Thank you for using our YouTube to MP3 Converter.
+        </p>
+      </div>
+    </section>
+  </main>
 
   <script type="module" src="./src/js/main.js"></script>
 </body>

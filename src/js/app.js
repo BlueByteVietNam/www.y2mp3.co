@@ -3,52 +3,139 @@
  * Handles download flow, state management, and event listeners
  */
 
-import {
-  setMode,
-  getModeButtons,
-  getURL,
-  getDownloadBtn,
-  getOptions,
-  setButtonState,
-  showError,
-  showSuccess,
-  showStatus,
-  hideStatus
-} from './ui.js';
 import { getDownloadURL } from './api/client.js';
 import { isYouTubeURL } from './utils/validate.js';
+import { AUDIO_DEFAULTS, VIDEO_DEFAULTS } from './config.js';
+
+// DOM Elements
+const urlInput = document.getElementById('urlInput');
+const convertBtn = document.getElementById('convertBtn');
+const converterTitle = document.getElementById('converterTitle');
+const videoTitle = document.getElementById('videoTitle');
+const formatBtns = document.querySelectorAll('.format-btn');
+const audioQualityText = document.getElementById('audioQuality');
+const videoQualityText = document.getElementById('videoQualityText');
+const qualityItems = document.querySelectorAll('.quality-item');
+const controls = document.getElementById('controls');
+const downloadActions = document.getElementById('downloadActions');
+const downloadBtn = document.getElementById('downloadBtn');
+const nextBtn = document.getElementById('nextBtn');
+
+// Hidden fields
+const audioBitrate = document.getElementById('audioBitrate');
+const videoQuality = document.getElementById('videoQuality');
+const videoCodec = document.getElementById('videoCodec');
+const videoContainer = document.getElementById('videoContainer');
+
+// Current mode and selections
+let currentMode = 'audio';
+let currentAudioFormat = 'mp3';
+let currentAudioBitrate = '128';
+let currentVideoQuality = '1080';
 
 // App states
 const STATE = {
   IDLE: 'idle',
   PROCESSING: 'processing',
-  DOWNLOADING: 'downloading'
+  READY: 'ready'
 };
 
 let currentState = STATE.IDLE;
+let downloadData = null; // Store download URL and filename
 
 /**
- * Update UI based on state
+ * Set current mode and update UI
  */
-function setState(state) {
-  currentState = state;
+function setMode(mode) {
+  currentMode = mode;
 
-  switch (state) {
-    case STATE.IDLE:
-      setButtonState('Download', false);
-      hideStatus();
-      break;
+  // Update format buttons
+  formatBtns.forEach(btn => {
+    if (btn.dataset.mode === mode) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+}
 
-    case STATE.PROCESSING:
-      setButtonState('Processing...', true);
-      showStatus('Processing your request...', 'info');
-      break;
+/**
+ * Show error
+ */
+function showError(message) {
+  urlInput.classList.add('error');
+  urlInput.value = message;
 
-    case STATE.DOWNLOADING:
-      setButtonState('Downloading...', true);
-      showStatus('Preparing download...', 'info');
-      break;
-  }
+  setTimeout(() => {
+    urlInput.classList.remove('error');
+    if (currentState === STATE.IDLE) {
+      urlInput.value = '';
+      urlInput.placeholder = 'youtube.com/watch?v=j0u7ub3-ur1';
+    }
+  }, 3000);
+}
+
+/**
+ * Reset to initial state
+ */
+function resetToIdle() {
+  currentState = STATE.IDLE;
+  downloadData = null;
+
+  // Reset UI
+  converterTitle.style.display = 'block';
+  converterTitle.textContent = 'Insert a valid video URL';
+  videoTitle.textContent = '';
+  videoTitle.classList.remove('show');
+  urlInput.value = '';
+  urlInput.placeholder = 'youtube.com/watch?v=j0u7ub3-ur1';
+  urlInput.classList.remove('loading', 'completed', 'error');
+  urlInput.disabled = false;
+
+  // Show controls, hide download actions
+  controls.style.display = 'flex';
+  downloadActions.style.display = 'none';
+
+  // Enable convert button
+  convertBtn.disabled = false;
+  const btnText = convertBtn.querySelector('.btn-text');
+  if (btnText) btnText.textContent = 'Convert';
+}
+
+/**
+ * Set processing state
+ */
+function setProcessingState() {
+  currentState = STATE.PROCESSING;
+
+  // Update input to show "extracting video"
+  urlInput.value = 'extracting video';
+  urlInput.classList.add('loading');
+  urlInput.disabled = true;
+
+  // Hide controls
+  controls.style.display = 'none';
+}
+
+/**
+ * Set ready state (show download buttons)
+ */
+function setReadyState(title, url, filename) {
+  currentState = STATE.READY;
+  downloadData = { url, filename };
+
+  // Hide converter title, show video title
+  converterTitle.style.display = 'none';
+  videoTitle.textContent = title || 'Video';
+  videoTitle.classList.add('show');
+
+  // Update input to show "conversion completed"
+  urlInput.value = 'conversion completed';
+  urlInput.classList.remove('loading');
+  urlInput.classList.add('completed');
+
+  // Show download actions
+  downloadActions.style.display = 'flex';
 }
 
 /**
@@ -71,7 +158,6 @@ function parseError(error) {
   if (error?.error?.code) {
     const code = error.error.code;
 
-    // Map backend error codes to user-friendly messages
     const errorMap = {
       'error.api.link.missing': 'Please provide a YouTube URL',
       'error.api.link.invalid': 'Invalid YouTube URL',
@@ -89,12 +175,32 @@ function parseError(error) {
 }
 
 /**
- * Main download handler
+ * Get options based on current mode
  */
-async function handleDownload() {
+function getOptions() {
+  const baseOptions = currentMode === 'audio'
+    ? { ...AUDIO_DEFAULTS }
+    : { ...VIDEO_DEFAULTS };
+
+  if (currentMode === 'audio') {
+    baseOptions.audioFormat = currentAudioFormat;
+    baseOptions.audioBitrate = currentAudioBitrate;
+  } else {
+    baseOptions.videoQuality = currentVideoQuality;
+    baseOptions.youtubeVideoCodec = videoCodec.value;
+    baseOptions.youtubeVideoContainer = videoContainer.value;
+  }
+
+  return baseOptions;
+}
+
+/**
+ * Main convert handler
+ */
+async function handleConvert() {
   if (currentState !== STATE.IDLE) return;
 
-  const url = getURL();
+  const url = urlInput.value.trim();
 
   // Validate URL
   if (!url) {
@@ -108,90 +214,125 @@ async function handleDownload() {
   }
 
   // Start processing
-  setState(STATE.PROCESSING);
+  setProcessingState();
 
   try {
-    // Get options from UI
     const options = getOptions();
-
-    console.log('Download Request:', { url, options });
-
-    // Call API
     const response = await getDownloadURL(url, options);
 
-    console.log('Download Response:', response);
-
-    // Handle different response statuses
     if (response.status === 'stream' || response.status === 'static') {
-      // SUCCESS - Backend returned download URL
-      setState(STATE.DOWNLOADING);
-
+      // Success - show download button
       const filename = response.filename || `download_${Date.now()}`;
+      const title = response.title || filename;
 
-      // Trigger browser download immediately
-      triggerDownload(response.url, filename);
-
-      // Show success message
-      showSuccess(`✓ Download started: ${filename}`);
-
-      // Reset to idle after delay
-
-      setState(STATE.IDLE);
+      setReadyState(title, response.url, filename);
 
     } else if (response.status === 'error') {
-      // ERROR - Backend returned error
       throw response;
-
     } else {
-      // UNEXPECTED - Unknown status
       throw new Error(`Unexpected response status: ${response.status}`);
     }
 
   } catch (error) {
-    console.error('Download Error:', error);
-
     const errorMsg = parseError(error);
     showError(errorMsg);
-
-    setState(STATE.IDLE);
+    resetToIdle();
   }
 }
 
 /**
- * Handle mode switch (MP3/MP4)
+ * Handle download button click
  */
-function handleModeSwitch(event) {
-  const btn = event.target.closest('.mode-btn');
-  if (!btn) return;
+function handleDownload() {
+  if (!downloadData) return;
 
-  const mode = btn.dataset.mode;
-  setMode(mode);
+  triggerDownload(downloadData.url, downloadData.filename);
+}
+
+/**
+ * Handle next button click (reset to idle)
+ */
+function handleNext() {
+  resetToIdle();
 }
 
 /**
  * Initialize app
  */
 export function init() {
-  // Mode toggle
-  getModeButtons().forEach(btn => {
-    btn.addEventListener('click', handleModeSwitch);
+  // Format toggle buttons
+  formatBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      setMode(btn.dataset.mode);
+    });
   });
 
+  // Quality selection
+  qualityItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+
+      const parentMode = item.closest('.format-option').dataset.mode;
+
+      if (parentMode === 'audio') {
+        // Audio quality selection
+        const format = item.dataset.format;
+        const bitrate = item.dataset.bitrate;
+
+        if (format && bitrate) {
+          currentAudioFormat = format;
+          currentAudioBitrate = bitrate;
+
+          // Update display text
+          if (format === 'best') {
+            audioQualityText.textContent = 'Best Quality';
+          } else if (format === 'mp3') {
+            audioQualityText.textContent = `${bitrate}kbps`;
+          } else {
+            audioQualityText.textContent = format.toUpperCase();
+          }
+
+          // Update hidden field
+          audioBitrate.value = bitrate;
+        }
+      } else if (parentMode === 'video') {
+        // Video quality selection
+        const quality = item.dataset.quality;
+
+        if (quality) {
+          currentVideoQuality = quality;
+
+          // Update display text
+          if (quality === 'max') {
+            videoQualityText.textContent = 'Max Quality';
+          } else {
+            videoQualityText.textContent = `${quality}p`;
+          }
+
+          // Update hidden field
+          videoQuality.value = quality;
+        }
+      }
+    });
+  });
+
+  // Convert button
+  convertBtn.addEventListener('click', handleConvert);
+
   // Download button
-  getDownloadBtn().addEventListener('click', handleDownload);
+  downloadBtn.addEventListener('click', handleDownload);
+
+  // Next button
+  nextBtn.addEventListener('click', handleNext);
 
   // Enter key on input
-  const urlInput = document.getElementById('urlInput');
   urlInput.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      handleDownload();
+    if (e.key === 'Enter' && currentState === STATE.IDLE) {
+      handleConvert();
     }
   });
 
-  // Initialize state
-  setState(STATE.IDLE);
+  // Initialize
+  resetToIdle();
   setMode('audio'); // Default to audio mode
-
-  console.log('✓ Y2MP3 initialized - Simple UI with full options');
-  console.log('Backend API Schema: 100% mapped');
 }
